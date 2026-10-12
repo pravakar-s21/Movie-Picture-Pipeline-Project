@@ -1,0 +1,114 @@
+name: Frontend CI
+
+on:
+  push:
+    paths:
+      - 'movie-app/frontend/**'
+  pull_request:
+    paths:
+      - 'movie-app/frontend/**'
+  workflow_dispatch: 
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: movie-app/frontend
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Restore Node Modules Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install Dependencies
+        working-directory: movie-app/frontend
+        run: npm ci
+
+      - name: Run Lint
+        working-directory: movie-app/frontend
+        run: npm run lint
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: movie-app/frontend
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Restore Node Modules Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install Dependencies
+        working-directory: movie-app/frontend
+        run: npm ci
+
+      - name: Run Tests
+        working-directory: movie-app/frontend
+        run: npm test
+
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: movie-app/frontend
+    needs: [lint, test]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Restore Node Modules Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install Dependencies
+        working-directory: movie-app/frontend
+        run: npm ci
+
+      - name: Run Tests
+        working-directory: movie-app/frontend
+        run: npm test
+
+      - name: Build Docker Image
+        run: docker build -t frontend:test .
